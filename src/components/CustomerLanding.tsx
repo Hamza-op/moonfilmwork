@@ -5,7 +5,7 @@ import { ReceiptGenerator } from './ReceiptGenerator';
 interface CustomerLandingProps {
   services: Service[];
   settings: BusinessSettings;
-  onSendWhatsApp: (receipt: Receipt) => void;
+  onSendWhatsApp: (receipt: Receipt) => Promise<void>;
   receiptCount: number;
   darkMode: boolean;
   setDarkMode: (value: boolean) => void;

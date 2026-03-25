@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import type { User } from '@supabase/supabase-js';
 import { Service, Receipt, BusinessSettings } from '../types';
 import { defaultServices, defaultBusinessSettings } from '../data/defaultData';
 
 export function useSupabaseAuth() {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -69,18 +70,15 @@ export function useSupabaseServices() {
     };
 
     const addService = async (service: Service) => {
-        console.log('Adding service to Supabase:', service);
-        const { data, error } = await supabase.from('services').insert([service]).select();
+        const { error } = await supabase.from('services').insert([service]).select();
         if (error) {
             console.error('Error adding service:', error);
             throw error;
         }
-        console.log('Service added successfully:', data);
     };
 
     const updateService = async (service: Service) => {
-        console.log('Updating service:', service.id, service);
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('services')
             .update(service)
             .eq('id', service.id)
@@ -89,17 +87,14 @@ export function useSupabaseServices() {
             console.error('Error updating service:', error);
             throw error;
         }
-        console.log('Service updated successfully:', data);
     };
 
     const deleteService = async (id: string) => {
-        console.log('Deleting service:', id);
         const { error } = await supabase.from('services').delete().eq('id', id);
         if (error) {
             console.error('Error deleting service:', error);
             throw error;
         }
-        console.log('Service deleted successfully');
     };
 
     return { services, loading, addService, updateService, deleteService };
@@ -139,18 +134,15 @@ export function useSupabaseReceipts() {
     };
 
     const addReceipt = async (receipt: Receipt) => {
-        console.log('Adding receipt:', receipt.receiptNumber);
-        const { data, error } = await supabase.from('receipts').insert([receipt]).select();
+        const { error } = await supabase.from('receipts').insert([receipt]).select();
         if (error) {
             console.error('Error adding receipt:', error);
             throw error;
         }
-        console.log('Receipt added successfully:', data);
     };
 
     const updateReceipt = async (receipt: Receipt) => {
-        console.log('Updating receipt:', receipt.id);
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('receipts')
             .update(receipt)
             .eq('id', receipt.id)
@@ -159,17 +151,14 @@ export function useSupabaseReceipts() {
             console.error('Error updating receipt:', error);
             throw error;
         }
-        console.log('Receipt updated successfully:', data);
     };
 
     const deleteReceipt = async (id: string) => {
-        console.log('Deleting receipt:', id);
         const { error } = await supabase.from('receipts').delete().eq('id', id);
         if (error) {
             console.error('Error deleting receipt:', error);
             throw error;
         }
-        console.log('Receipt deleted successfully');
     };
 
     return { receipts, loading, addReceipt, updateReceipt, deleteReceipt };
@@ -228,9 +217,8 @@ export function useSupabaseSettings() {
     const updateSettings = async (newSettings: BusinessSettings) => {
         // Ensure id is set for the update query
         const settingsToUpdate = { ...newSettings, id: 'default_settings' };
-        console.log('Updating settings:', settingsToUpdate);
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('settings')
             .update(settingsToUpdate)
             .eq('id', 'default_settings')
@@ -240,7 +228,6 @@ export function useSupabaseSettings() {
             console.error('Settings update error:', error);
             throw error;
         }
-        console.log('Settings update result:', data);
         // Optimistic update
         setSettings(newSettings);
     };

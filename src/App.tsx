@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { AuthError } from '@supabase/supabase-js';
 
 import { useSupabaseAuth, useSupabaseServices, useSupabaseReceipts, useSupabaseSettings } from './hooks/useSupabase';
 import { applyTheme } from './data/themes';
@@ -51,25 +52,12 @@ export function App() {
     return () => window.removeEventListener('hashchange', checkHash);
   }, [user, authLoading]);
 
-  // Apply dark mode class to document
+  // Sync local dark mode with persisted settings
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  // Sync theme with DB settings
-  useEffect(() => {
-    if (settings.themePreference) {
-      applyTheme(settings.themePreference, settings.darkMode || false);
-    }
-    // Also sync local dark mode state to match DB (for the toggle to reflect correctly)
     if (settings.darkMode !== undefined) {
       setDarkMode(settings.darkMode);
     }
-  }, [settings.themePreference, settings.darkMode]);
+  }, [settings.darkMode]);
 
   // Apply dark mode class (keep this for immediate feedback on toggle)
   useEffect(() => {
@@ -156,9 +144,9 @@ _Please follow up with the customer to confirm booking._
       setShowPasswordPrompt(false);
       setEmail('');
       setPassword('');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
-      setLoginError(error.message || 'Invalid login credentials');
+      setLoginError(error instanceof AuthError ? error.message : 'Invalid login credentials');
     } finally {
       setIsLoggingIn(false);
     }

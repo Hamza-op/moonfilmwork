@@ -1,12 +1,13 @@
 import { Receipt, BusinessSettings, Service } from '../../types';
 import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
+import type { AdminTab } from './AdminSidebar';
 
 interface DashboardOverviewProps {
     receipts: Receipt[];
     settings: BusinessSettings;
     services: Service[];
-    setActiveTab: (tab: any) => void;
+    setActiveTab: (tab: AdminTab) => void;
 }
 
 const cardVariants = {

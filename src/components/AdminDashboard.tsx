@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Service, BusinessSettings, Receipt } from '../types';
 import { AdminSidebar } from './admin/AdminSidebar';
+import type { AdminTab } from './admin/AdminSidebar';
 import { AdminHeader } from './admin/AdminHeader';
 import { DashboardOverview } from './admin/DashboardOverview';
 import { ServicesManager } from './admin/ServicesManager';
@@ -39,7 +40,7 @@ export function AdminDashboard({
   darkMode,
   setDarkMode,
 }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'settings' | 'receipts' | 'payments' | 'themes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

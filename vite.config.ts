@@ -11,6 +11,17 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   base: "/moonfilmwork/",
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/framer-motion")) return "motion-vendor";
+          if (id.includes("node_modules/@supabase")) return "supabase-vendor";
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react-vendor";
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

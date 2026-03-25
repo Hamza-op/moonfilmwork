@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
-type AdminTab = 'dashboard' | 'services' | 'settings' | 'receipts' | 'payments' | 'themes';
+export type AdminTab = 'dashboard' | 'services' | 'settings' | 'receipts' | 'payments' | 'themes';
 
 interface AdminSidebarProps {
     activeTab: AdminTab;

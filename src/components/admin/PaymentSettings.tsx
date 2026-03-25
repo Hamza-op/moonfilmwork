@@ -18,7 +18,7 @@ export function PaymentSettingsManager({ settings, onUpdateSettings }: PaymentSe
         setHasChanges(false);
     }, [settings]);
 
-    const handleLocalSettingChange = (key: keyof BusinessSettings, value: any) => {
+    const handleLocalSettingChange = <K extends keyof BusinessSettings>(key: K, value: BusinessSettings[K]) => {
         setLocalSettings(prev => ({ ...prev, [key]: value }));
         setHasChanges(true);
     };
