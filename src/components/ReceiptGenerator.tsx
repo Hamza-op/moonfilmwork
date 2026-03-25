@@ -252,13 +252,48 @@ export function ReceiptGenerator({
     }
   };
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: string, isActive: boolean) => {
+    const stroke = isActive ? 'currentColor' : 'currentColor';
+    const sw = isActive ? 2 : 1.5;
     switch (category) {
-      case 'photography': return '📷';
-      case 'videography': return '🎬';
-      case 'package': return '📦';
-      case 'addon': return '➕';
-      default: return '🎯';
+      case 'photography':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="13" r="4" />
+            <path d="M9 2l-1.5 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.5L15 2H9z" />
+          </svg>
+        );
+      case 'videography':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="14" height="16" rx="2" />
+            <path d="M16 8l6-3v14l-6-3" />
+          </svg>
+        );
+      case 'package':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        );
+      case 'addon':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        );
+      default:
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        );
     }
   };
 
@@ -267,7 +302,7 @@ export function ReceiptGenerator({
       case 'photography': return 'Photo';
       case 'videography': return 'Video';
       case 'package': return 'Packages';
-      case 'addon': return 'Add-ons';
+      case 'addon': return 'Add-Ons';
       default: return 'All';
     }
   };
@@ -288,29 +323,72 @@ export function ReceiptGenerator({
         </h2>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map((cat) => (
-            <motion.button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`group relative px-4 py-2.5 rounded-full text-xs md:text-sm font-semibold capitalize transition-all duration-300 ${activeCategory === cat
-                ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:shadow-sm hover:scale-[1.03]'
+        <div className="flex flex-wrap gap-2 md:gap-2.5 mb-8">
+          {categories.map((cat, i) => {
+            const isActive = activeCategory === cat;
+            return (
+              <motion.button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: i * 0.05, ease: [0.25, 1, 0.5, 1] }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.94 }}
+                className={`group relative flex items-center gap-2 md:gap-2.5 px-4 md:px-5 py-2.5 md:py-3 rounded-xl text-[11px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all duration-350 overflow-hidden ${
+                  isActive
+                    ? 'text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground bg-muted/30 border border-border/40 hover:border-primary/30 hover:bg-muted/50'
                 }`}
-              whileHover={{ scale: activeCategory === cat ? 1.05 : 1.04 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              aria-pressed={activeCategory === cat}
-              aria-label={`Filter by ${getCategoryLabel(cat)}`}
-            >
-              <span className="flex items-center gap-1.5">
-                <span className={`transition-transform duration-300 ${activeCategory === cat ? 'scale-110' : 'group-hover:scale-110'}`}>
-                  {getCategoryIcon(cat)}
-                </span>
-                {getCategoryLabel(cat)}
-              </span>
-            </motion.button>
-          ))}
+                style={{ fontFamily: 'var(--font-sans)' }}
+                aria-pressed={isActive}
+                aria-label={`Filter by ${getCategoryLabel(cat)}`}
+              >
+                {/* Active state background layers */}
+                {isActive && (
+                  <>
+                    <motion.span
+                      layoutId="filter-active-bg"
+                      className="absolute inset-0 rounded-xl bg-primary"
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                    <motion.span
+                      className="absolute inset-0 rounded-xl opacity-25"
+                      style={{
+                        background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                      }}
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '100%' }}
+                      transition={{ duration: 1.2, delay: 0.1, ease: "easeInOut" }}
+                    />
+                    <motion.span
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/5 h-px bg-gradient-to-r from-transparent via-primary-foreground/50 to-transparent"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
+                    />
+                  </>
+                )}
+
+                {/* Icon */}
+                <motion.span
+                  className="relative z-10 flex items-center justify-center w-4 h-4"
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  {getCategoryIcon(cat, isActive)}
+                </motion.span>
+
+                {/* Label */}
+                <span className="relative z-10">{getCategoryLabel(cat)}</span>
+
+                {/* Hover glow for inactive */}
+                {!isActive && (
+                  <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+                )}
+              </motion.button>
+            );
+          })}
         </div>
 
         {/* Services Grid */}
@@ -433,7 +511,7 @@ export function ReceiptGenerator({
                 placeholder="email@example.com"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="event-date" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Event Date</label>
                 <input
@@ -502,7 +580,7 @@ export function ReceiptGenerator({
                       </div>
                       <button
                         onClick={() => removeItem(item.serviceId)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all"
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg ml-2 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                         aria-label={`Remove ${item.serviceName}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

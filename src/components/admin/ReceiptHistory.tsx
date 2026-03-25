@@ -96,8 +96,8 @@ export function ReceiptHistory({ receipts, settings, onUpdateReceipt, onDeleteRe
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-6">
-                                    <div className="text-right">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                                    <div className="text-left sm:text-right">
                                         <p className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-mono)' }}>
                                             {settings.currency}{receipt.total.toLocaleString()}
                                         </p>
@@ -110,10 +110,10 @@ export function ReceiptHistory({ receipts, settings, onUpdateReceipt, onDeleteRe
                                             {new Date(receipt.createdAt).toLocaleString()}
                                         </p>
                                     </div>
-                                    <div className="pl-6 border-l border-border/40 flex flex-col justify-center">
+                                    <div className="pt-3 sm:pt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-border/40 flex flex-col justify-center">
                                         <button
                                             onClick={() => handleDeleteReceipt(receipt.id)}
-                                            className="p-2.5 text-muted-foreground hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
+                                            className="p-2.5 text-muted-foreground hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                             title="Delete Receipt"
                                             aria-label={`Delete receipt ${receipt.receiptNumber}`}
                                         >

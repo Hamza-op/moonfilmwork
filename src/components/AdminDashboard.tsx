@@ -51,7 +51,7 @@ export function AdminDashboard({
         onLogout={onLogout}
       />
 
-      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+      <div className="flex flex-1 flex-col md:flex-row max-w-7xl mx-auto w-full">
         <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">

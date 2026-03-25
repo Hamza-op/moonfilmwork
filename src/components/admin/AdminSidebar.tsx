@@ -19,15 +19,19 @@ export function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
     ];
 
     return (
-        <aside className="w-16 sm:w-64 bg-card border-r border-border/50 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto" role="navigation" aria-label="Admin navigation">
-            <nav className="p-2 sm:p-3 space-y-1 mt-1">
+        <aside
+            className="w-full md:w-64 md:shrink-0 bg-card border-b md:border-b-0 md:border-r border-border/50 md:sticky md:top-[73px] md:h-[calc(100vh-73px)] md:overflow-y-auto"
+            role="navigation"
+            aria-label="Admin navigation"
+        >
+            <nav className="flex md:block gap-1 overflow-x-auto p-2 sm:p-3 md:space-y-1 md:mt-1">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         aria-current={activeTab === tab.id ? 'page' : undefined}
                         className={cn(
-                            'w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left relative overflow-hidden group',
+                            'flex-none md:w-full flex items-center justify-center md:justify-start gap-3 px-3 py-3 rounded-xl transition-all text-left relative overflow-hidden group min-w-12',
                             activeTab === tab.id
                                 ? 'text-primary-foreground font-semibold shadow-md'
                                 : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
@@ -47,7 +51,7 @@ export function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
                             )}>
                                 {tab.icon}
                             </span>
-                            <span className="hidden sm:block text-sm">{tab.label}</span>
+                            <span className="hidden md:block text-sm">{tab.label}</span>
                         </span>
                     </button>
                 ))}

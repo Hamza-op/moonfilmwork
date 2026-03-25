@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Service, BusinessSettings } from '../../types';
 import { cn } from '../../utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
+import pakistanWeddingServices from '../../data/pakistanWeddingServices.json';
 
 interface ServicesManagerProps {
     services: Service[];
@@ -20,6 +21,7 @@ export function ServicesManager({
 }: ServicesManagerProps) {
     const [editingService, setEditingService] = useState<Service | null>(null);
     const [isAddingService, setIsAddingService] = useState(false);
+    const [isImportingMarketRates, setIsImportingMarketRates] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('all');
 
@@ -68,6 +70,26 @@ export function ServicesManager({
         }
     };
 
+    const handleImportMarketRates = async () => {
+        if (isImportingMarketRates) return;
+
+        setIsImportingMarketRates(true);
+        try {
+            const marketServices = pakistanWeddingServices as Service[];
+
+            for (const service of marketServices) {
+                const existingService = services.find((current) => current.id === service.id);
+                if (existingService) {
+                    await onUpdateService({ ...existingService, ...service });
+                } else {
+                    await onAddService(service);
+                }
+            }
+        } finally {
+            setIsImportingMarketRates(false);
+        }
+    };
+
     const getCategoryColor = (category: string) => {
         switch (category) {
             case 'photography': return 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/15';
@@ -87,17 +109,31 @@ export function ServicesManager({
                     <h3 className="text-3xl" style={{ fontFamily: 'var(--font-display)' }}>Services</h3>
                     <p className="text-muted-foreground mt-1">Add, edit, or remove services offered by your studio</p>
                 </div>
-                <motion.button
-                    onClick={() => setIsAddingService(true)}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 font-semibold text-sm"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Service
-                </motion.button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <motion.button
+                        onClick={handleImportMarketRates}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        disabled={isImportingMarketRates}
+                        className="px-5 py-2.5 bg-muted text-foreground rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-border/50 flex items-center justify-center gap-2 font-semibold text-sm"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m14.836 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-14.357-2M15 15h5" />
+                        </svg>
+                        {isImportingMarketRates ? 'Importing...' : 'Import Pakistan Rates'}
+                    </motion.button>
+                    <motion.button
+                        onClick={() => setIsAddingService(true)}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 font-semibold text-sm"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Service
+                    </motion.button>
+                </div>
             </div>
 
             {/* Search / Filter */}
