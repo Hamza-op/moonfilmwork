@@ -8,6 +8,7 @@ import { ReceiptHistory } from './admin/ReceiptHistory';
 import { BusinessSettingsManager } from './admin/BusinessSettings';
 import { PaymentSettingsManager } from './admin/PaymentSettings';
 import { ThemeManager } from './admin/ThemeManager';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AdminDashboardProps {
   services: Service[];
@@ -53,59 +54,69 @@ export function AdminDashboard({
         <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
-          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {activeTab === 'dashboard' && (
-              <DashboardOverview
-                receipts={receipts}
-                settings={settings}
-                services={services}
-                setActiveTab={setActiveTab}
-              />
-            )}
+          <div className="max-w-4xl mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {activeTab === 'dashboard' && (
+                  <DashboardOverview
+                    receipts={receipts}
+                    settings={settings}
+                    services={services}
+                    setActiveTab={setActiveTab}
+                  />
+                )}
 
-            {activeTab === 'services' && (
-              <ServicesManager
-                services={services}
-                settings={settings}
-                onAddService={onAddService}
-                onUpdateService={onUpdateService}
-                onDeleteService={onDeleteService}
-              />
-            )}
+                {activeTab === 'services' && (
+                  <ServicesManager
+                    services={services}
+                    settings={settings}
+                    onAddService={onAddService}
+                    onUpdateService={onUpdateService}
+                    onDeleteService={onDeleteService}
+                  />
+                )}
 
-            {activeTab === 'receipts' && (
-              <ReceiptHistory
-                receipts={receipts}
-                settings={settings}
-                onUpdateReceipt={onUpdateReceipt}
-                onDeleteReceipt={onDeleteReceipt}
-              />
-            )}
+                {activeTab === 'receipts' && (
+                  <ReceiptHistory
+                    receipts={receipts}
+                    settings={settings}
+                    onUpdateReceipt={onUpdateReceipt}
+                    onDeleteReceipt={onDeleteReceipt}
+                  />
+                )}
 
-            {activeTab === 'settings' && (
-              <BusinessSettingsManager
-                settings={settings}
-                onUpdateSettings={onUpdateSettings}
-              />
-            )}
+                {activeTab === 'settings' && (
+                  <BusinessSettingsManager
+                    settings={settings}
+                    onUpdateSettings={onUpdateSettings}
+                  />
+                )}
 
-            {activeTab === 'payments' && (
-              <PaymentSettingsManager
-                settings={settings}
-                onUpdateSettings={onUpdateSettings}
-              />
-            )}
+                {activeTab === 'payments' && (
+                  <PaymentSettingsManager
+                    settings={settings}
+                    onUpdateSettings={onUpdateSettings}
+                  />
+                )}
 
-            {activeTab === 'themes' && (
-              <ThemeManager
-                settings={settings}
-                onUpdateSettings={onUpdateSettings}
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-                currentTheme={settings.themePreference || 'default'}
-                setCurrentTheme={(themeId) => onUpdateSettings({ ...settings, themePreference: themeId })}
-              />
-            )}
+                {activeTab === 'themes' && (
+                  <ThemeManager
+                    settings={settings}
+                    onUpdateSettings={onUpdateSettings}
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
+                    currentTheme={settings.themePreference || 'default'}
+                    setCurrentTheme={(themeId) => onUpdateSettings({ ...settings, themePreference: themeId })}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

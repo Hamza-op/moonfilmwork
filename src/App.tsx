@@ -206,57 +206,60 @@ _Please follow up with the customer to confirm booking._
 
       {/* Login Modal */}
       {showPasswordPrompt && !user && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card text-card-foreground rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-accent">
-                <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card bg-card text-card-foreground rounded-2xl shadow-2xl p-7 w-full max-w-sm border border-border/40">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 border border-primary/15">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-xl font-bold">Admin Login</h3>
+                <h3 className="text-xl" style={{ fontFamily: 'var(--font-display)' }}>Admin Login</h3>
                 <p className="text-sm text-muted-foreground">Sign in to manage your studio</p>
               </div>
             </div>
 
             {loginError && (
-              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg">
+              <div className="mb-5 p-3 bg-red-500/10 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-500/15 flex items-center gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L8.732 4.5c-.77-.833-2.694-.833-3.464 0L1.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
                 {loginError}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Email</label>
+                <label htmlFor="login-email" className="text-xs font-semibold mb-1.5 block uppercase tracking-wider text-muted-foreground">Email</label>
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent placeholder:text-muted-foreground"
+                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
                   placeholder="admin@example.com"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Password</label>
+                <label htmlFor="login-password" className="text-xs font-semibold mb-1.5 block uppercase tracking-wider text-muted-foreground">Password</label>
                 <input
+                  id="login-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
-                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent placeholder:text-muted-foreground"
+                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-7">
               <button
                 onClick={handleLoginSubmit}
                 disabled={isLoggingIn}
-                className="flex-1 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20 transition-all text-sm"
               >
                 {isLoggingIn ? 'Signing in...' : 'Sign In'}
               </button>
@@ -266,9 +269,9 @@ _Please follow up with the customer to confirm booking._
                   setEmail('');
                   setPassword('');
                   setLoginError('');
-                  window.location.hash = ''; // Clear hash if cancelling
+                  window.location.hash = '';
                 }}
-                className="flex-1 py-3 bg-muted text-muted-foreground rounded-xl hover:opacity-80 font-medium"
+                className="flex-1 py-3 bg-muted text-muted-foreground rounded-xl hover:opacity-80 font-medium border border-border/50 transition-all text-sm"
               >
                 Cancel
               </button>

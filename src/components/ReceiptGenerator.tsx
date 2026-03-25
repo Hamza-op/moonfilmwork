@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Service, Receipt, ReceiptItem, BusinessSettings } from '../types';
 
 interface ReceiptGeneratorProps {
@@ -24,12 +24,9 @@ export function ReceiptGenerator({
   const [notes, setNotes] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
-  // Get today's date in YYYY-MM-DD format for min date validation
   const today = new Date().toISOString().split('T')[0];
-
   const categories = ['all', 'photography', 'videography', 'package', 'addon'];
 
-  // Load from localStorage on mount
   useEffect(() => {
     const savedData = localStorage.getItem('receiptData');
     if (savedData) {
@@ -48,7 +45,6 @@ export function ReceiptGenerator({
     }
   }, []);
 
-  // Save to localStorage whenever data changes
   useEffect(() => {
     const dataToSave = {
       customerName,
@@ -62,7 +58,6 @@ export function ReceiptGenerator({
     localStorage.setItem('receiptData', JSON.stringify(dataToSave));
   }, [customerName, customerPhone, customerEmail, eventDate, eventType, selectedItems, notes]);
 
-  // Only show active services
   const activeServices = services.filter(s => s.isActive);
 
   const filteredServices =
@@ -121,9 +116,9 @@ export function ReceiptGenerator({
     }
 
     const subtotal = selectedItems.reduce((sum, item) => sum + item.total, 0);
-    const discountAmount = 0; // Default no discount
+    const discountAmount = 0;
     const taxAmount = subtotal * (settings.taxRate / 100);
-    const total = subtotal - discountAmount + taxAmount;
+    const finalTotal = subtotal - discountAmount + taxAmount;
 
     const receipt: Receipt = {
       id: Date.now().toString(),
@@ -138,18 +133,17 @@ export function ReceiptGenerator({
       discount: discountAmount,
       discountType: 'fixed',
       tax: taxAmount,
-      total,
+      total: finalTotal,
       notes,
       createdAt: new Date().toISOString(),
       status: 'pending',
       amountPaid: 0,
-      balanceDue: total,
+      balanceDue: finalTotal,
       advancePayment: 0,
     };
 
     onSendWhatsApp(receipt);
 
-    // Reset form and clear localStorage
     setCustomerName('');
     setCustomerPhone('');
     setCustomerEmail('');
@@ -181,27 +175,35 @@ export function ReceiptGenerator({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Section - Service Selection */}
-      <div className="rounded-2xl shadow-lg p-4 md:p-6 bg-card text-card-foreground">
-        <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent text-accent-foreground">📋</span>
+    <div className="space-y-8">
+      {/* ═══ Service Selection ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="rounded-[var(--radius-lg)] shadow-lg p-5 md:p-8 bg-card text-card-foreground border border-border/40"
+      >
+        <h2 className="text-xl md:text-2xl mb-6 flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+          <span className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-lg border border-primary/15">📋</span>
           Select Services
         </h2>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-8">
           {categories.map((cat) => (
             <motion.button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`group relative px-4 py-2.5 rounded-full text-xs md:text-sm font-semibold capitalize transition-all duration-300 ${activeCategory === cat
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
-                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:shadow-md hover:scale-105'
+                ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:shadow-sm hover:scale-[1.03]'
                 }`}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: activeCategory === cat ? 1.05 : 1.04 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              aria-pressed={activeCategory === cat}
+              aria-label={`Filter by ${getCategoryLabel(cat)}`}
             >
               <span className="flex items-center gap-1.5">
                 <span className={`transition-transform duration-300 ${activeCategory === cat ? 'scale-110' : 'group-hover:scale-110'}`}>
@@ -209,122 +211,149 @@ export function ReceiptGenerator({
                 </span>
                 {getCategoryLabel(cat)}
               </span>
-              {activeCategory === cat && (
-                <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse" />
-              )}
             </motion.button>
           ))}
         </div>
 
-        {/* Services Grid - responsive: 1 col mobile, 2 tablet, 3 desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 overflow-visible">
-          {filteredServices.map((service) => {
-            const selectedItem = selectedItems.find((item) => item.serviceId === service.id);
-            const isSelected = !!selectedItem;
-            return (
-              <div
-                key={service.id}
-                className={`p-3 md:p-4 rounded-xl border-2 transition-all ${isSelected
-                  ? 'border-primary bg-accent'
-                  : 'border-border hover:border-primary/50 bg-card'
-                  }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-medium text-sm md:text-base leading-tight">{service.name}</span>
-                </div>
-                <p className="text-xs md:text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
-                <div className="flex items-center justify-between mt-auto">
-                  <p className="text-base md:text-lg font-bold text-primary">
-                    {settings.currency}{service.price.toLocaleString()}
-                  </p>
-                  {isSelected ? (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => updateQuantity(service.id, (selectedItem?.quantity || 1) - 1)}
-                        className="w-7 h-7 md:w-6 md:h-6 rounded-full flex items-center justify-center text-sm font-bold bg-muted hover:opacity-80"
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+          <AnimatePresence mode="popLayout">
+            {filteredServices.map((service, i) => {
+              const selectedItem = selectedItems.find((item) => item.serviceId === service.id);
+              const isSelected = !!selectedItem;
+              return (
+                <motion.div
+                  key={service.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3, delay: i * 0.03 }}
+                  className={`group p-4 md:p-5 rounded-xl border-2 transition-all cursor-default ${isSelected
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/10'
+                    : 'border-border/60 hover:border-primary/40 bg-card hover:shadow-md'
+                    }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-semibold text-sm md:text-base leading-tight">{service.name}</span>
+                    {isSelected && (
+                      <span className="flex h-5 w-5 rounded-full bg-primary items-center justify-center flex-shrink-0 ml-2">
+                        <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">{service.description}</p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <p className="text-base md:text-lg font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>
+                      {settings.currency}{service.price.toLocaleString()}
+                    </p>
+                    {isSelected ? (
+                      <div className="flex items-center gap-1.5 bg-muted/80 rounded-full p-1 border border-border/50">
+                        <button
+                          onClick={() => updateQuantity(service.id, (selectedItem?.quantity || 1) - 1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold bg-card hover:bg-destructive/10 hover:text-destructive transition-colors border border-border/30"
+                          aria-label={`Decrease quantity of ${service.name}`}
+                        >
+                          −
+                        </button>
+                        <span className="w-7 text-center text-sm font-semibold tabular-nums">{selectedItem?.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(service.id, (selectedItem?.quantity || 0) + 1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold bg-card hover:bg-primary/10 hover:text-primary transition-colors border border-border/30"
+                          aria-label={`Increase quantity of ${service.name}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <motion.button
+                        onClick={() => addService(service)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs rounded-full hover:opacity-90 font-semibold shadow-sm"
                       >
-                        −
-                      </button>
-                      <span className="w-6 text-center text-sm font-medium">{selectedItem?.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(service.id, (selectedItem?.quantity || 0) + 1)}
-                        className="w-7 h-7 md:w-6 md:h-6 rounded-full flex items-center justify-center text-sm font-bold bg-muted hover:opacity-80"
-                      >
-                        +
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => addService(service)}
-                      className="px-3 py-1.5 bg-primary text-primary-foreground text-xs rounded-full hover:opacity-90 font-medium"
-                    >
-                      Add
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                        Add
+                      </motion.button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Bottom Section - 2 Columns (Info & Summary) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      {/* ═══ Bottom Section — 2 Columns ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
 
-        {/* Left: Customer Info (Now Optional) */}
-        <div className="rounded-2xl shadow-lg p-4 md:p-6 bg-card text-card-foreground">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-accent text-accent-foreground">👤</span>
-            Customer Info <span className="text-xs font-normal text-muted-foreground ml-auto">(Optional)</span>
+        {/* Customer Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="rounded-[var(--radius-lg)] shadow-lg p-5 md:p-8 bg-card text-card-foreground border border-border/40"
+        >
+          <h2 className="text-lg md:text-xl mb-5 flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 text-base border border-primary/15">👤</span>
+            Customer Info
+            <span className="text-xs font-normal text-muted-foreground ml-auto font-sans">(Optional)</span>
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1 text-muted-foreground">Name</label>
+              <label htmlFor="customer-name" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Name</label>
               <input
+                id="customer-name"
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full px-3 py-2.5 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
+                className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
                 placeholder="Walk-in Customer"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-muted-foreground">Phone</label>
+              <label htmlFor="customer-phone" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Phone</label>
               <input
+                id="customer-phone"
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                className="w-full px-3 py-2.5 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
+                className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
                 placeholder="03xx xxxxxxx"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1 text-muted-foreground">Email</label>
+              <label htmlFor="customer-email" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Email</label>
               <input
+                id="customer-email"
                 type="email"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                className="w-full px-3 py-2.5 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
+                className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
                 placeholder="email@example.com"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium mb-1 text-muted-foreground">Event Date</label>
+                <label htmlFor="event-date" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Event Date</label>
                 <input
+                  id="event-date"
                   type="date"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
                   min={today}
-                  className="w-full px-3 py-2.5 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1 text-muted-foreground">Event Type</label>
+                <label htmlFor="event-type" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Event Type</label>
                 <select
+                  id="event-type"
                   value={eventType}
                   onChange={(e) => setEventType(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm"
                 >
                   <option>Wedding</option>
                   <option>Pre-Wedding</option>
@@ -338,76 +367,100 @@ export function ReceiptGenerator({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Right: Summary & Selected Services */}
-        <div className="rounded-2xl shadow-lg p-4 md:p-6 bg-card text-card-foreground flex flex-col h-full">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-accent text-accent-foreground">💰</span>
+        {/* Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="rounded-[var(--radius-lg)] shadow-lg p-5 md:p-8 bg-card text-card-foreground flex flex-col h-full border border-border/40"
+        >
+          <h2 className="text-lg md:text-xl mb-5 flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 text-base border border-primary/15">💰</span>
             Summary
           </h2>
 
-          {/* Selected Services List (Scrollable if long) */}
-          <div className="flex-1 mb-4 min-h-[100px] max-h-[300px] overflow-y-auto pr-1">
+          {/* Selected Items */}
+          <div className="flex-1 mb-5 min-h-[120px] max-h-[320px] overflow-y-auto pr-1">
             {selectedItems.length > 0 ? (
               <div className="space-y-2">
-                {selectedItems.map((item) => (
-                  <div
-                    key={item.serviceId}
-                    className="flex items-center justify-between rounded-lg p-3 bg-muted"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.serviceName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {settings.currency}{item.price.toLocaleString()} × {item.quantity} = {settings.currency}{item.total.toLocaleString()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeItem(item.serviceId)}
-                      className="p-1.5 text-destructive hover:bg-destructive/10 rounded-lg ml-2 flex-shrink-0"
+                <AnimatePresence>
+                  {selectedItems.map((item) => (
+                    <motion.div
+                      key={item.serviceId}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10, height: 0, marginBottom: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex items-center justify-between rounded-xl p-3.5 bg-muted/60 border border-border/30 group hover:bg-muted/80 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{item.serviceName}</p>
+                        <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>
+                          {settings.currency}{item.price.toLocaleString()} × {item.quantity} = {settings.currency}{item.total.toLocaleString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeItem(item.serviceId)}
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all"
+                        aria-label={`Remove ${item.serviceName}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg p-4">
-                <p>No services selected yet</p>
-                <p className="text-xs mt-1">Select services from above to add them here</p>
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground/70 text-sm border-2 border-dashed border-border/60 rounded-xl p-6">
+                <svg className="w-10 h-10 mb-3 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <p className="font-medium">No services selected</p>
+                <p className="text-xs mt-1">Select services above to build your quote</p>
               </div>
             )}
           </div>
 
           {/* Notes */}
-          <div className="mb-4">
-            <label className="block text-xs font-medium mb-1 text-muted-foreground">Notes</label>
+          <div className="mb-5">
+            <label htmlFor="receipt-notes" className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider">Notes</label>
             <textarea
+              id="receipt-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground"
-              placeholder="Additional notes..."
+              className="w-full px-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent text-sm placeholder:text-muted-foreground resize-none"
+              placeholder="Additional notes or special requests..."
             />
           </div>
 
           {/* Total */}
-          <div className="rounded-xl p-4 mb-4 bg-accent">
+          <div className="rounded-xl p-5 mb-5 bg-gradient-to-r from-primary/8 to-accent/40 border border-primary/10">
             <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-2xl font-bold text-primary">{settings.currency}{total.toLocaleString()}</span>
+              <span className="text-lg font-semibold">Estimated Total</span>
+              <span className="text-2xl sm:text-3xl font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>
+                {settings.currency}{total.toLocaleString()}
+              </span>
             </div>
+            {settings.taxRate > 0 && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                + {settings.taxRate}% tax applied at checkout
+              </p>
+            )}
           </div>
 
-          {/* Send on WhatsApp Button */}
+          {/* Send WhatsApp */}
           <motion.button
             onClick={handleSendWhatsApp}
             disabled={selectedItems.length === 0}
-            className="btn-uiverse w-full flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            className="btn-uiverse w-full flex items-center justify-center gap-2.5 text-base disabled:opacity-45 disabled:cursor-not-allowed"
+            whileHover={selectedItems.length > 0 ? { scale: 1.02, y: -2 } : {}}
+            whileTap={selectedItems.length > 0 ? { scale: 0.98 } : {}}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -415,7 +468,7 @@ export function ReceiptGenerator({
             </svg>
             Send Receipt on WhatsApp
           </motion.button>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
